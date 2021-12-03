@@ -10,7 +10,7 @@ public class FoodCollectorSettings : MonoBehaviour
     public FoodCollectorArea[] listArea;
 
     public int totalScore;
-    public Text scoreText;
+    //public Text scoreText;
 
     StatsRecorder m_Recorder;
 
@@ -27,6 +27,7 @@ public class FoodCollectorSettings : MonoBehaviour
 
         agents = GameObject.FindGameObjectsWithTag("agent");
         listArea = FindObjectsOfType<FoodCollectorArea>();
+
         foreach (var fa in listArea)
         {
             fa.ResetFoodArea(agents);
@@ -45,7 +46,7 @@ public class FoodCollectorSettings : MonoBehaviour
 
     public void Update()
     {
-        scoreText.text = $"Score: {totalScore}";
+        //scoreText.text = $"Score: {totalScore}";
 
         // Send stats via SideChannel so that they'll appear in TensorBoard.
         // These values get averaged every summary_frequency steps, so we don't

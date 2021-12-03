@@ -6,13 +6,10 @@ using Random = UnityEngine.Random;
 
 public class FoodCollectorAgent : Agent
 {
-    FoodCollectorSettings m_FoodCollecterSettings;
-    public GameObject area;
-    FoodCollectorArea m_MyArea;
+    GcMazeController m_MyArea;
     bool m_Frozen;
-    bool m_Poisoned;
-    bool m_Satiated;
     bool m_Shoot;
+    public bool m_HaveAKey; //have i picked up a key
     float m_FrozenTime;
     float m_EffectTime;
     Rigidbody m_AgentRb;
@@ -20,12 +17,14 @@ public class FoodCollectorAgent : Agent
     // Speed of agent rotation.
     public float turnSpeed = 300;
 
+
     // Speed of agent movement.
     public float moveSpeed = 2;
+
     public Material normalMaterial;
-    public Material badMaterial;
-    public Material goodMaterial;
     public Material frozenMaterial;
+    public Material obtainKeyMaterial;
+
     public GameObject myLaser;
     public bool contribute;
     public bool useVectorObs;
@@ -39,8 +38,7 @@ public class FoodCollectorAgent : Agent
     public override void Initialize()
     {
         m_AgentRb = GetComponent<Rigidbody>();
-        m_MyArea = area.GetComponent<FoodCollectorArea>();
-        m_FoodCollecterSettings = FindObjectOfType<FoodCollectorSettings>();
+        m_MyArea = GetComponentInParent<GcMazeController>();
         m_ResetParams = Academy.Instance.EnvironmentParameters;
         SetResetParameters();
     }
@@ -79,13 +77,9 @@ public class FoodCollectorAgent : Agent
         }
         if (Time.time > m_EffectTime + 0.5f)
         {
-            if (m_Poisoned)
+            if (m_HaveAKey)
             {
-                Unpoison();
-            }
-            if (m_Satiated)
-            {
-                Unsatiate();
+                HaveKey();
             }
         }
 
@@ -133,6 +127,7 @@ public class FoodCollectorAgent : Agent
                 if (hit.collider.gameObject.CompareTag("agent"))
                 {
                     hit.collider.gameObject.GetComponent<FoodCollectorAgent>().Freeze();
+                    hit.collider.gameObject.GetComponent<FoodCollectorAgent>().DropKey();
                 }
             }
         }
@@ -157,31 +152,18 @@ public class FoodCollectorAgent : Agent
         gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
     }
 
-    void Poison()
+    void HaveKey()
     {
-        m_Poisoned = true;
-        m_EffectTime = Time.time;
-        gameObject.GetComponentInChildren<Renderer>().material = badMaterial;
+        m_HaveAKey = true;
+        gameObject.GetComponentInChildren<Renderer>().material = obtainKeyMaterial;
     }
 
-    void Unpoison()
+    public void DropKey()
     {
-        m_Poisoned = false;
+        m_HaveAKey = false;
         gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
     }
 
-    void Satiate()
-    {
-        m_Satiated = true;
-        m_EffectTime = Time.time;
-        gameObject.GetComponentInChildren<Renderer>().material = goodMaterial;
-    }
-
-    void Unsatiate()
-    {
-        m_Satiated = false;
-        gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
-    }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
 
@@ -215,15 +197,15 @@ public class FoodCollectorAgent : Agent
     public override void OnEpisodeBegin()
     {
         Unfreeze();
-        Unpoison();
-        Unsatiate();
+        DropKey();
         m_Shoot = false;
         m_AgentRb.velocity = Vector3.zero;
         myLaser.transform.localScale = new Vector3(0f, 0f, 0f);
         transform.position = new Vector3(Random.Range(-m_MyArea.range, m_MyArea.range),
             2f, Random.Range(-m_MyArea.range, m_MyArea.range))
-            + area.transform.position;
+            + m_MyArea.transform.position;
         transform.rotation = Quaternion.Euler(new Vector3(0f, Random.Range(0, 360)));
+        m_HaveAKey = false;
 
         SetResetParameters();
     }
@@ -232,24 +214,17 @@ public class FoodCollectorAgent : Agent
     {
         if (collision.gameObject.CompareTag("food"))
         {
-            Satiate();
             collision.gameObject.GetComponent<FoodLogic>().OnEaten();
             AddReward(1f);
-            if (contribute)
-            {
-                m_FoodCollecterSettings.totalScore += 1;
-            }
         }
-        if (collision.gameObject.CompareTag("badFood"))
+        if (collision.gameObject.CompareTag("key"))
         {
-            Poison();
-            collision.gameObject.GetComponent<FoodLogic>().OnEaten();
-
-            AddReward(-1f);
-            if (contribute)
+            if (m_HaveAKey == false)
             {
-                m_FoodCollecterSettings.totalScore -= 1;
+                HaveKey();
+                collision.gameObject.GetComponent<FoodLogic>().OnEaten();
             }
+
         }
     }
 

@@ -3,7 +3,8 @@ using UnityEngine;
 public class FoodLogic : MonoBehaviour
 {
     public bool respawn;
-    public FoodCollectorArea myArea;
+    //public FoodCollectorArea myArea;
+    public GcMazeController myArea;
 
     public void OnEaten()
     {
