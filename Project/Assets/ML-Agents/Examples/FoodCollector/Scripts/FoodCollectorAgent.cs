@@ -207,7 +207,7 @@ public class FoodCollectorAgent : Agent
         transform.rotation = Quaternion.Euler(new Vector3(0f, Random.Range(0, 360)));
         m_HaveAKey = false;
 
-        SetResetParameters();
+        //SetResetParameters();
     }
 
     void OnCollisionEnter(Collision collision)
@@ -244,4 +244,21 @@ public class FoodCollectorAgent : Agent
         SetLaserLengths();
         SetAgentScale();
     }
+
+    protected override void OnDisable()
+    {
+    }
+
+    public void Die()
+    {
+        gameObject.SetActive(false);
+        //this.OnDisable();
+    }
+
+    public void Respawn()
+    {
+        gameObject.SetActive(true);
+        //this.OnEnable();
+    }
+
 }

@@ -234,7 +234,7 @@ public class DungeonEscapeEnvController : MonoBehaviour
             item.Agent.MyKey.SetActive(false);
             item.Agent.IHaveAKey = false;
             item.Agent.gameObject.SetActive(true);
-            m_AgentGroup.RegisterAgent(item.Agent);
+            //m_AgentGroup.RegisterAgent(item.Agent);
         }
 
         //Reset Key

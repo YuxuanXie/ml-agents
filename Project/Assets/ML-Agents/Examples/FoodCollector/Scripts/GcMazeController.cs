@@ -7,10 +7,10 @@ using System.Collections.Generic;
 public class GcMazeController : MonoBehaviour
 {
 
+
     public GameObject agentPrefab;
     public int numAgents;
     public List<FoodCollectorAgent> FoodCollectorAgents { get; private set; }
-
 
     public GameObject keyPrefab;
     public int numKeyFirst;
@@ -32,6 +32,8 @@ public class GcMazeController : MonoBehaviour
     public int curStep;
     public int nextStageStep;
     public int aliveAgentNums;
+
+    private SimpleMultiAgentGroup m_AgentGroup;
 
 
 
@@ -61,6 +63,8 @@ public class GcMazeController : MonoBehaviour
     // Create agents
     void CreateAgent()
     {
+        print("I create again");
+
         for (int i = 0; i < numAgents; i++)
         {
             Instantiate<GameObject>(agentPrefab, transform);
@@ -76,11 +80,14 @@ public class GcMazeController : MonoBehaviour
         ClearObjects(GameObject.FindGameObjectsWithTag("key"));
         //ClearObjects(GameObject.FindGameObjectsWithTag("agent"));
 
-        if (FoodCollectorAgents == null) CreateAgent();
+        if (FoodCollectorAgents == null)
+            CreateAgent();
 
         foreach (var agent in FoodCollectorAgents)
         {
-            agent.gameObject.SetActive(true);
+            //agent.gameObject.SetActive(true);
+            agent.Respawn();
+            m_AgentGroup.RegisterAgent(agent);
         }
 
         Create(keyPrefab, numKeyFirst);
@@ -95,22 +102,14 @@ public class GcMazeController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        m_AgentGroup = new SimpleMultiAgentGroup();
         Academy.Instance.OnEnvironmentReset += EnvironmentReset;
-        //EnvironmentReset();
-    }
-
-    // End episode for all agents
-    void EndAllEpisodes()
-    {
-        foreach (var agent in FoodCollectorAgents)
-        {
-            agent.EndEpisode();
-        }
         EnvironmentReset();
+
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         curStep++;
         if (curStep >= nextStageStep)
@@ -123,15 +122,17 @@ public class GcMazeController : MonoBehaviour
 
             if (curStage >= 3)
             {
-                EndAllEpisodes();
+                m_AgentGroup.EndGroupEpisode();
+                EnvironmentReset();
                 return;
             }
+
 
             foreach (var agent in FoodCollectorAgents)
             {
                 if (agent.m_HaveAKey == false)
                 {
-                    agent.gameObject.SetActive(false);
+                    agent.Die();
                     aliveAgentNums--;
                 }
                 else
@@ -142,11 +143,12 @@ public class GcMazeController : MonoBehaviour
 
             //if (aliveAgentNums == 0)
             //{
-            //    EndAllEpisodes();
+            //    m_AgentGroup.EndGroupEpisode();
+            //    EnvironmentReset();
             //    return;
             //}
 
-            if(curStage == 1)
+            if (curStage == 1)
             {
                 Create(keyPrefab, numKeySecond);
             }
