@@ -17,7 +17,6 @@ public class FoodCollectorAgent : Agent
     // Speed of agent rotation.
     public float turnSpeed = 300;
 
-
     // Speed of agent movement.
     public float moveSpeed = 2;
 
@@ -34,6 +33,10 @@ public class FoodCollectorAgent : Agent
     public bool useVectorFrozenFlag;
 
     EnvironmentParameters m_ResetParams;
+
+    public int maxHealth = 1;
+    public int health = 1;
+    public int hitPoint = 1;
 
     public override void Initialize()
     {
@@ -75,12 +78,10 @@ public class FoodCollectorAgent : Agent
         {
             Unfreeze();
         }
-        if (Time.time > m_EffectTime + 0.5f)
+
+        if (m_HaveAKey)
         {
-            if (m_HaveAKey)
-            {
-                HaveKey();
-            }
+            HaveKey();
         }
 
         var dirToGo = Vector3.zero;
@@ -124,10 +125,18 @@ public class FoodCollectorAgent : Agent
             RaycastHit hit;
             if (Physics.SphereCast(transform.position, 2f, rayDir, out hit, 25f))
             {
-                if (hit.collider.gameObject.CompareTag("agent"))
+                if (hit.collider.gameObject.CompareTag("agent") | hit.collider.gameObject.CompareTag("agentCarryKey"))
                 {
-                    hit.collider.gameObject.GetComponent<FoodCollectorAgent>().Freeze();
-                    hit.collider.gameObject.GetComponent<FoodCollectorAgent>().DropKey();
+                    var hitAgent = hit.collider.gameObject.GetComponent<FoodCollectorAgent>();
+                    hitAgent.DropHealth(hitPoint);
+                    if (hitAgent.health <= 0)
+                    {
+                        hitAgent.Freeze();
+                        if (hitAgent.m_HaveAKey == true)
+                        {
+                            hitAgent.DropKey();
+                        }
+                    }
                 }
             }
         }
@@ -149,19 +158,23 @@ public class FoodCollectorAgent : Agent
     {
         m_Frozen = false;
         gameObject.tag = "agent";
+        health = maxHealth;
         gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
     }
 
     void HaveKey()
     {
         m_HaveAKey = true;
+        gameObject.tag = "agentCarryKey";
         gameObject.GetComponentInChildren<Renderer>().material = obtainKeyMaterial;
     }
 
     public void DropKey()
     {
         m_HaveAKey = false;
+        gameObject.tag = "agent";
         gameObject.GetComponentInChildren<Renderer>().material = normalMaterial;
+        m_MyArea.CreateOneKey();
     }
 
 
@@ -197,7 +210,8 @@ public class FoodCollectorAgent : Agent
     public override void OnEpisodeBegin()
     {
         Unfreeze();
-        DropKey();
+        m_HaveAKey = false;
+        health = maxHealth;
         m_Shoot = false;
         m_AgentRb.velocity = Vector3.zero;
         myLaser.transform.localScale = new Vector3(0f, 0f, 0f);
@@ -205,7 +219,6 @@ public class FoodCollectorAgent : Agent
             2f, Random.Range(-m_MyArea.range, m_MyArea.range))
             + m_MyArea.transform.position;
         transform.rotation = Quaternion.Euler(new Vector3(0f, Random.Range(0, 360)));
-        m_HaveAKey = false;
 
         //SetResetParameters();
     }
@@ -247,18 +260,22 @@ public class FoodCollectorAgent : Agent
 
     protected override void OnDisable()
     {
+        EndEpisode();
     }
 
     public void Die()
     {
         gameObject.SetActive(false);
-        //this.OnDisable();
     }
 
     public void Respawn()
     {
         gameObject.SetActive(true);
-        //this.OnEnable();
+    }
+
+    public void DropHealth(int hit)
+    {
+        health -= hit;
     }
 
 }

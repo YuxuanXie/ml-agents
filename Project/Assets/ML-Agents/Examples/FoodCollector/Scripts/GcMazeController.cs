@@ -13,13 +13,14 @@ public class GcMazeController : MonoBehaviour
     public List<FoodCollectorAgent> FoodCollectorAgents { get; private set; }
 
     public GameObject keyPrefab;
+    public GameObject keySecondPrefab;
     public int numKeyFirst;
     public int numKeySecond;
-    public bool respawnKey;
+    public bool respawnKey=false;
 
     public GameObject food;
     public int numFood;
-    public bool respawnFood;
+    public bool respawnFood=false;
 
     // For both key and food
     public float range;
@@ -38,14 +39,14 @@ public class GcMazeController : MonoBehaviour
 
 
     // Create food / key
-    void Create(GameObject type, int num)
+    void Create(GameObject type, int num, bool respawn)
     {
         for (int i = 0; i < num; i++)
         {
             GameObject f = Instantiate(type, new Vector3(Random.Range(-range, range), 1f,
                 Random.Range(-range, range)) + transform.position,
                 Quaternion.Euler(new Vector3(0f, Random.Range(0f, 360f), 90f)));
-            f.GetComponent<FoodLogic>().respawn = respawnFood;
+            f.GetComponent<FoodLogic>().respawn = respawn;
             f.GetComponent<FoodLogic>().myArea = this;
         }
     }
@@ -63,7 +64,7 @@ public class GcMazeController : MonoBehaviour
     // Create agents
     void CreateAgent()
     {
-        print("I create again");
+        //print("I create again");
 
         for (int i = 0; i < numAgents; i++)
         {
@@ -71,14 +72,55 @@ public class GcMazeController : MonoBehaviour
         }
 
         FoodCollectorAgents = transform.GetComponentsInChildren<FoodCollectorAgent>().ToList();
+
+        for (int i = 0; i < FoodCollectorAgents.Count(); ++i)
+        {
+            if (i <= 37)
+            {
+                FoodCollectorAgents[i].maxHealth = 1;
+                FoodCollectorAgents[i].hitPoint = 1;
+            }
+            else if( i >= 38 & i < 74)
+            {
+                FoodCollectorAgents[i].maxHealth = 2;
+                FoodCollectorAgents[i].hitPoint = 2;
+            }
+            else if (i >= 74 & i < 81)
+            {
+                FoodCollectorAgents[i].maxHealth = 3;
+                FoodCollectorAgents[i].hitPoint = 3;
+            }
+            else if (i >= 81 & i < 88)
+            {
+                FoodCollectorAgents[i].maxHealth = 4;
+                FoodCollectorAgents[i].hitPoint = 4;
+            }
+            else if (i >= 88 & i < 95)
+            {
+                FoodCollectorAgents[i].maxHealth = 5;
+                FoodCollectorAgents[i].hitPoint = 5;
+            }
+            else
+            {
+                FoodCollectorAgents[i].maxHealth = 6;
+                FoodCollectorAgents[i].hitPoint = 6;
+            }
+        }
+    }
+
+    public void CreateOneKey()
+    {
+        Create(keyPrefab, 1, respawnKey);
     }
 
     void EnvironmentReset()
     {
+        numKeyFirst = (int)Academy.Instance.EnvironmentParameters.GetWithDefault("numKeyFirst", numKeyFirst);
+        numKeySecond = (int)Academy.Instance.EnvironmentParameters.GetWithDefault("numKeySecond", numKeySecond);
+        numFood = (int)Academy.Instance.EnvironmentParameters.GetWithDefault("numFood", numFood);
 
         ClearObjects(GameObject.FindGameObjectsWithTag("food"));
         ClearObjects(GameObject.FindGameObjectsWithTag("key"));
-        //ClearObjects(GameObject.FindGameObjectsWithTag("agent"));
 
         if (FoodCollectorAgents == null)
             CreateAgent();
@@ -90,7 +132,7 @@ public class GcMazeController : MonoBehaviour
             m_AgentGroup.RegisterAgent(agent);
         }
 
-        Create(keyPrefab, numKeyFirst);
+        Create(keyPrefab, numKeyFirst, respawnKey);
         //Create(food, numKeyFirst);
 
         curStage = 0;
@@ -147,14 +189,14 @@ public class GcMazeController : MonoBehaviour
             //    EnvironmentReset();
             //    return;
             //}
-
+            ClearObjects(GameObject.FindGameObjectsWithTag("key"));
             if (curStage == 1)
             {
-                Create(keyPrefab, numKeySecond);
+                Create(keySecondPrefab, numKeySecond, respawnKey);
             }
             else
             {
-                Create(food, numFood);
+                Create(food, numFood, respawnFood);
             }
         }
     }

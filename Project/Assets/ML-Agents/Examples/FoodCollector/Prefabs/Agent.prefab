@@ -588,7 +588,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: f4b8757bd574543b1aa06d9294a5d707, type: 3}
+  m_Model: {fileID: 0}
   m_InferenceDevice: 2
   m_BehaviorType: 0
   m_BehaviorName: GridFoodCollector
@@ -663,15 +663,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SensorName: GridSensor
   m_CellScale: {x: 1, y: 0.01, z: 1}
-  m_GridSize: {x: 40, y: 1, z: 40}
+  m_GridSize: {x: 20, y: 1, z: 20}
   m_RotateWithAgent: 1
   m_AgentGameObject: {fileID: 0}
   m_DetectableTags:
   - food
   - agent
   - wall
-  - badFood
+  - key
   - frozenAgent
+  - agentCarryKey
   m_ColliderMask:
     serializedVersion: 2
     m_Bits: 307
@@ -683,8 +684,9 @@ MonoBehaviour:
   - {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0}
   - {r: 0.74509805, g: 0.22745098, b: 0.15294118, a: 0}
   - {r: 0, g: 0, b: 0, a: 0}
+  - {r: 0, g: 0, b: 0, a: 0}
   m_GizmoYOffset: 0
-  m_ShowGizmos: 0
+  m_ShowGizmos: 1
   m_CompressionType: 1
   m_ObservationStacks: 1
 --- !u!1 &4585681439062035514
